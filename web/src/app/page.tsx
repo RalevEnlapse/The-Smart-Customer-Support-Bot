@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -49,7 +51,16 @@ async function ensureSessionId(): Promise<string> {
   return sid;
 }
 
+const MODELS = [
+  "openai.openai/gpt-5.2",
+  "openai.openai/gpt-4.1",
+  "openai.openai/gpt-4o-mini",
+] as const;
+
+type ModelId = (typeof MODELS)[number];
+
 export default function Home() {
+  const [model, setModel] = useState<ModelId>(MODELS[0]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -87,7 +98,7 @@ export default function Home() {
         fetch(`${backendUrl()}/api/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id: sid, message: text }),
+          body: JSON.stringify({ session_id: sid, message: text, model }),
         });
 
       let res = await attempt(sessionId);
@@ -165,6 +176,22 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
+            <label className="hidden text-xs text-[var(--muted-foreground)] sm:block">
+              Model
+            </label>
+            <select
+              className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm shadow-sm outline-none focus:ring-4 focus:ring-[var(--ring)]"
+              value={model}
+              onChange={(e) => setModel(e.target.value as ModelId)}
+              disabled={loading}
+            >
+              {MODELS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+
             <button
               className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm shadow-sm hover:bg-[var(--muted)] disabled:opacity-50"
               onClick={reset}
@@ -194,7 +221,15 @@ export default function Home() {
                             : "bg-[var(--muted)] text-[var(--card-foreground)]"
                         }`}
                       >
-                        {m.content}
+                        {isUser ? (
+                          m.content
+                        ) : (
+                          <div className="prose prose-zinc max-w-none text-sm prose-p:my-2 prose-pre:overflow-x-auto">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {m.content}
+                            </ReactMarkdown>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -225,7 +260,7 @@ export default function Home() {
                 }}
               >
                 <input
-                  className="flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-3 text-sm outline-none shadow-sm focus:border-transparent focus:ring-4 focus:ring-[var(--ring)] disabled:opacity-50"
+                  className="flex-1 text-gray-800 rounded-xl border border-[var(--border)] bg-white px-3 py-3 text-sm outline-none shadow-sm focus:border-transparent focus:ring-4 focus:ring-[var(--ring)] disabled:opacity-50"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about products, or: status of order 12345"

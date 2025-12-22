@@ -28,6 +28,7 @@ def route_user_message(
     products: List[Dict[str, Any]],
     session_messages: List[Dict[str, str]],
     user_message: str,
+    model: str = "openai.openai/gpt-5.2",
 ) -> Tuple[str, List[Dict[str, str]]]:
     """Routes message to order-status or product-Q&A.
 
@@ -46,7 +47,7 @@ def route_user_message(
         question_with_history = (
             f"Conversation so far:\n{history}\n\n" f"Current user question: {user_message}"
         )
-        reply = answer_product_question(client, products, question_with_history)
+        reply = answer_product_question(client, products, question_with_history, model=model)
 
     session_messages.append({"role": "assistant", "content": reply})
     return reply, session_messages

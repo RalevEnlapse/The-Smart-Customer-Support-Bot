@@ -24,11 +24,13 @@ class ChatService:
         self,
         session_messages: List[ChatMessage],
         user_message: str,
+        model: str = "openai.openai/gpt-5.2",
     ) -> Tuple[str, List[ChatMessage]]:
         reply, updated = route_user_message(
             self._client,
             self._products,
             session_messages,
             user_message,
+            model=model,
         )
         return reply, updated

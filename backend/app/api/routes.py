@@ -43,20 +43,28 @@ def chat():
 
     session_id = data.get("session_id")
     message = data.get("message")
+    model = data.get("model")
 
     if not session_id or not isinstance(session_id, str):
         raise ApiError("session_id is required", 400, "missing_session")
     if not message or not isinstance(message, str):
         raise ApiError("message must be a non-empty string", 400, "invalid_message")
 
+    if model is None:
+        model = "openai.openai/gpt-5.2"
+    if not isinstance(model, str) or not model.strip():
+        raise ApiError("model must be a non-empty string", 400, "invalid_model")
+
     history = _store.get(session_id)
     if history is None:
         raise ApiError("session_id not found", 404, "session_not_found")
 
-    reply, updated = _chat_service().respond(history, message)
+    reply, updated = _chat_service().respond(history, message, model=model)
     _store.set(session_id, updated)
 
-    return jsonify({"reply": reply, "messages": updated, "session_id": session_id})
+    return jsonify(
+        {"reply": reply, "messages": updated, "session_id": session_id, "model": model}
+    )
 
 
 @api.post("/reset")
