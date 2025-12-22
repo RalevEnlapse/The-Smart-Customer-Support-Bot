@@ -1,21 +1,38 @@
-def answer_product_question(client, products, question, model: str = "openai.openai/gpt-5.2"):
-    # Prepare context with product information
-    context = "Here is the list of products:\n"
-    for product in products:
-        context += (
-            f"- ID: {product['id']}, Name: {product['name']}, "
-            f"Description: {product['description']}, Price: ${product['price']}, "
-            f"Category: {product['category']}\n"
-        )
+from __future__ import annotations
 
-    prompt = (
-        f"{context}\n\nUser question: {question}\n\n"
-        "Answer based on the products above. If its not related to the products, "
-        "respond with 'I don't know its not related to the products' ."
-    )
+from typing import Any, Dict, List
+
+from backend.src.services.response_style import (
+    build_conversation_context,
+    build_products_context,
+    build_user_prompt,
+    support_agent_system_prompt,
+)
+
+
+def answer_product_question(
+    client: Any,
+    products: List[Dict[str, Any]],
+    question: str,
+    model: str = "openai.openai/gpt-5.2",
+):
+    """Answer product questions using a support-agent markdown contract."""
+
+    products_md = build_products_context(products)
+
+    # The router may pass question with history embedded already; keep it but also
+    # provide structured recent transcript to the model when possible.
+    # If the caller included a 'Conversation so far' block, it's harmless.
+    user_md = build_user_prompt(question)
+
+    system = support_agent_system_prompt()
 
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": f"{products_md}\n\n{user_md}"},
+        ],
     )
+
     return response.choices[0].message.content

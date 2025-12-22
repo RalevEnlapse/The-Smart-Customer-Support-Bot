@@ -41,8 +41,16 @@ def route_user_message(
 
     if is_order_status_query(user_message):
         order_id = extract_order_id(user_message)
-        reply = get_order_status(order_id)
+        status = get_order_status(order_id)
+        reply = (
+            "### Order status\n\n"
+            f"- Order ID: **{order_id}**\n"
+            f"- Status: {status}\n\n"
+            "### Next steps\n"
+            "- If you want, share any extra details from your confirmation email (carrier / tracking number) and I can help interpret it.\n"
+        )
     else:
+        # Keep minimal history; the LLM prompt builder formats it in markdown.
         history = "\n".join([f"{m['role']}: {m['content']}" for m in session_messages[-10:]])
         question_with_history = (
             f"Conversation so far:\n{history}\n\n" f"Current user question: {user_message}"
