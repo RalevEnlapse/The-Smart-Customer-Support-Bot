@@ -4,7 +4,7 @@ def answer_product_question(client, products, question):
     for product in products:
         context += f"- ID: {product['id']}, Name: {product['name']}, Description: {product['description']}, Price: ${product['price']}, Category: {product['category']}\n"
     
-    prompt = f"{context}\n\nUser question: {question}\n\nAnswer based on the products above."
+    prompt = f"{context}\n\nUser question: {question}\n\nAnswer based on the products above. If its not related to the products, respond with 'I don't know its not related to the products' ."
     
     response = client.chat.completions.create(
         model="openai.openai/gpt-5.2",
