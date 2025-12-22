@@ -7,24 +7,26 @@ A simple customer service chatbot that answers questions about products using a 
 - **Product Q&A**: Ask questions about available products, powered by an LLM with product data context.
 - **Order Status**: Get mock status updates for orders by providing an order ID.
 - **Interactive Chat**: Command-line interface for real-time interaction.
+- **Web UI (local)**: Next.js chat frontend talking to a Flask backend API.
 
 ## Project Structure
 
 ```
-3.1-OpenAiAgentsSDK/
+3.2 - Smart Customer Support Bot/
 ├── data/
-│   └── product.json          # JSON file containing product information
-├── src/
-│   ├── .env                  # Environment variables (API key)
-│   ├── requirements.txt      # Python dependencies
-│   ├── config.py             # Configuration and API client setup
-│   ├── data_loader.py        # Loads product data from JSON
-│   ├── services/
-│   │   ├── order_service.py  # Handles order status logic
-│   │   └── llm_service.py    # Handles LLM-based product question answering
-│   ├── bot.py                # Chat loop and user interaction
-│   └── main.py               # Entry point to run the bot
-└── readme.md                 # This file
+│   └── product.json                 # Product information
+├── backend/
+│   ├── requirements.txt             # Backend dependencies
+│   ├── wsgi.py                      # Backend entrypoint
+│   ├── app/                         # Flask app package
+│   │   ├── api/routes.py            # /api/* routes
+│   │   ├── stores/session_store.py  # In-memory sessions (swappable later)
+│   │   └── utils/errors.py          # Consistent JSON errors
+│   └── src/                         # Domain logic (moved from old top-level src/)
+│       ├── config.py
+│       ├── data_loader.py
+│       └── services/
+└── web/                             # Next.js frontend
 ```
 
 ## Requirements
@@ -50,6 +52,8 @@ A simple customer service chatbot that answers questions about products using a 
 
 ## Usage
 
+### CLI (original)
+
 1. From the `src` directory, run the bot:
    ```
    python main.py
@@ -58,6 +62,60 @@ A simple customer service chatbot that answers questions about products using a 
    - Ask questions like: "What products do you have?"
    - Check order status: "What is the status of order 12345?"
    - Type 'quit' to exit.
+
+### Web (local)
+
+#### 1) Backend (Flask)
+
+From the repo root:
+
+```
+python -m venv .venv
+.venv\\Scripts\\activate
+pip install -r backend/requirements.txt
+```
+
+Set your API key (copy the example):
+- Copy [`web/.env.local.example`](web/.env.local.example:1) → `web/.env.local` (optional)
+- Create `backend/src/.env` with:
+
+```
+VELOCITY_API_KEY=your_api_key_here
+```
+
+Run the backend:
+
+```
+python backend/wsgi.py
+```
+
+Backend will listen on `http://127.0.0.1:5000`.
+
+#### 1-click run (Windows)
+
+After you’ve created the `.venv` and installed dependencies, you can start both backend + frontend using:
+
+- [`run_all.cmd`](run_all.cmd:1)
+
+#### 2) Frontend (Next.js)
+
+From the repo root:
+
+```
+cd web
+npm install
+```
+
+(Optional) configure backend URL:
+- Copy [`web/.env.local.example`](web/.env.local.example:1) → `web/.env.local`
+
+Run Next.js:
+
+```
+npm run dev
+```
+
+Open `http://localhost:3000`.
 
 ## Example Interaction
 

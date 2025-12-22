@@ -1,3 +1,11 @@
+# Python / app secrets
 .env
+src/.env
+backend/.env
+
+# Next.js
+web/.env.local
+web/.next/
+web/node_modules/
 
 __pycache__/
